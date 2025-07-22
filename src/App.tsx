@@ -16,15 +16,22 @@ export default function App() {
   const [formTitre, setFormTitre] = useState("");
   const [formMontant, setFormMontant] = useState("");
 
-  // Charger depuis l'API
-  useEffect(() => {
-    fetch("https://budget-backend-rpbe.onrender.com/depenses", {method:"GET"})
+  // Fonction pour charger les données
+  const fetchData = () => {
+    fetch("https://budget-backend-rpbe.onrender.com/depenses")
       .then(res => res.json())
-      .then(data => setDepenses(data)).catch(console.log);
+      .then(data => setDepenses(data))
+      .catch(err => console.error("Erreur fetch depenses:", err));
 
     fetch("https://budget-backend-rpbe.onrender.com/revenus")
       .then(res => res.json())
-      .then(data => setRevenus(data)).catch(console.log);
+      .then(data => setRevenus(data))
+      .catch(err => console.error("Erreur fetch revenus:", err));
+  };
+
+  // Charger les données au montage
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const totalDep = depenses.reduce((acc, d) => acc + d.montant, 0);
@@ -38,23 +45,29 @@ export default function App() {
 
     const data = { titre: formTitre.trim(), montant: montantNum };
 
+    let url = "";
     if (modalOpen === "depense") {
-      fetch("'https://budget-backend-rpbe.onrender.com/depenses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-        .then(res => res.json())
-        .then(newItem => setDepenses([...depenses, newItem]));
+      url = "https://budget-backend-rpbe.onrender.com/depenses";
     } else if (modalOpen === "revenu") {
-      fetch("https://budget-backend-rpbe.onrender.com/revenus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-        .then(res => res.json())
-        .then(newItem => setRevenus([...revenus, newItem]));
+      url = "https://budget-backend-rpbe.onrender.com/revenus";
     }
+
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`Erreur HTTP! status: ${res.status}`);
+        return res.json();
+      })
+      .then(() => {
+        fetchData(); // recharge les données après ajout
+      })
+      .catch(err => {
+        console.error("Erreur POST:", err);
+        alert("Une erreur est survenue lors de l'ajout");
+      });
 
     setFormTitre("");
     setFormMontant("");
@@ -66,13 +79,15 @@ export default function App() {
 
     fetch(`https://budget-backend-rpbe.onrender.com/${cle}/${item.id}`, {
       method: "DELETE",
-    }).then(() => {
-      if (cle === "depenses") {
-        setDepenses(depenses.filter((_, i) => i !== index));
-      } else {
-        setRevenus(revenus.filter((_, i) => i !== index));
-      }
-    });
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`Erreur HTTP! status: ${res.status}`);
+        fetchData(); // recharge les données après suppression
+      })
+      .catch(err => {
+        console.error("Erreur DELETE:", err);
+        alert("Une erreur est survenue lors de la suppression");
+      });
   }
 
   return (
