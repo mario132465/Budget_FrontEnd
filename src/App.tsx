@@ -18,11 +18,11 @@ export default function App() {
 
   // Charger depuis l'API
   useEffect(() => {
-    fetch("http://localhost:3000/depenses", {method:"GET"})
+    fetch("https://budget-backend-1zia.onrender.com/depenses", {method:"GET"})
       .then(res => res.json())
       .then(data => setDepenses(data)).catch(console.log);
 
-    fetch("http://localhost:3000/revenus")
+    fetch("https://budget-backend-1zia.onrender.com/revenus")
       .then(res => res.json())
       .then(data => setRevenus(data)).catch(console.log);
   }, []);
@@ -39,7 +39,7 @@ export default function App() {
     const data = { titre: formTitre.trim(), montant: montantNum };
 
     if (modalOpen === "depense") {
-      fetch("http://localhost:3000/depenses", {
+      fetch("'https://budget-backend-1zia.onrender.com/depenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -47,7 +47,7 @@ export default function App() {
         .then(res => res.json())
         .then(newItem => setDepenses([...depenses, newItem]));
     } else if (modalOpen === "revenu") {
-      fetch("http://localhost:3000/revenus", {
+      fetch("https://budget-backend-1zia.onrender.com/revenus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -64,7 +64,7 @@ export default function App() {
   function supprimer(cle: "depenses" | "revenus", index: number) {
     const item = cle === "depenses" ? depenses[index] : revenus[index];
 
-    fetch(`http://localhost:3000/${cle}/${item.id}`, {
+    fetch(`https://budget-backend-1zia.onrender.com/${cle}/${item.id}`, {
       method: "DELETE",
     }).then(() => {
       if (cle === "depenses") {
